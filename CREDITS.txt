@@ -1,0 +1,8 @@
+[Developers]
+	
+	Pr1zmo - https://github.com/Pr1zmo
+	
+[Direct]
+	
+	TerranceN (Tutorial/Inspiration) - http://compsci.ca/v3/viewtopic.php?t=25991
+	Shaun Spalding (Assets/Inspiration) - https://www.youtube.com/watch?v=upoXH9hAKUg&list=PLPRT_JORnIuosvhfax2TQTEmN7OYTcSvK
