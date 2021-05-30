@@ -1,8 +1,11 @@
 package physics;
 
+import main.Game;
+
 import map.Room;
 
 import objects.Object;
+import objects.PlayerObject;
 
 public class ObjectCollision {
 	
@@ -48,7 +51,9 @@ public class ObjectCollision {
 	
 	public void checkForObjectCollision() {
 		
-		for (Object object : this.room.currentObjectList) {
+		PlayerObject object = Game.playerObject;
+		
+//		for (Object object : this.room.currentObjectList) {
 			
 			if (object.isCollidable) {
 				
@@ -86,7 +91,7 @@ public class ObjectCollision {
 				
 			}
 			
-		}
+//		}
 		
 	}
 	
