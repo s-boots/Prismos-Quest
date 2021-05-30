@@ -61,7 +61,7 @@ public class Game {
 	
 	public List<WeatherObject> currentWeatherObjectsRendered = new ArrayList<WeatherObject>();
 	
-	public PlayerObject playerObject;
+	public static /* Testing Modifier Only */ PlayerObject playerObject;
 	
 	// This Method was Made by TerranceN
 	
