@@ -1,8 +1,13 @@
 [Developers]
 	
-	Pr1zmo - https://github.com/Pr1zmo
+	Pr1zmo (Lead Developer) - https://github.com/Pr1zmo
 	
 [Direct]
 	
-	TerranceN (Tutorial/Inspiration) - http://compsci.ca/v3/viewtopic.php?t=25991
+	TerranceN (Tutorial/Inspiration)    - http://compsci.ca/v3/viewtopic.php?t=25991
 	Shaun Spalding (Assets/Inspiration) - https://www.youtube.com/watch?v=upoXH9hAKUg&list=PLPRT_JORnIuosvhfax2TQTEmN7OYTcSvK
+	CodeNMore (Tutorial)                - https://www.youtube.com/playlist?list=PLah6faXAgguMnTBs3JnEJY0shAc18XYQZ
+	Adwitr (Assets)                     - https://adwitr.itch.io/pixel-health-bar-asset-pack-2
+	Stealthix (Assets)                  - https://stealthix.itch.io/rpg-nature-tileset
+	GGBot (Assets)                      - https://ggbot.itch.io/pixeloid-font
+	Java Love (Assets)                  - https://stackoverflow.com/questions/22240328/how-to-draw-a-gif-animation-in-java
