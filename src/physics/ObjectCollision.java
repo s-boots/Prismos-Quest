@@ -1,14 +1,22 @@
 package physics;
 
-import main.Game;
-import map.Map;
+import map.Room;
+
 import objects.Object;
 
 public class ObjectCollision {
 	
-	public static void checkForWorldCollision(Map map) {
+	public Room room;
+	
+	public ObjectCollision(Room room) {
 		
-		for (Object object : Game.currentObjectsOnScreen) {
+		this.room = room;
+		
+	}
+	
+	public void checkForWorldCollision() {
+		
+		for (Object object : this.room.currentObjectList) {
 			
 			if (object.isCollidable) {
 				
@@ -16,9 +24,7 @@ public class ObjectCollision {
 					
 					object.x += object.movementAmount;
 					
-				}
-				
-				if (isObjectCollidingRight(object.x + object.width, map.width)) {
+				} else if (isObjectCollidingRight((object.x + object.width), this.room.map.width)) {
 					
 					object.x -= object.movementAmount;
 					
@@ -28,9 +34,7 @@ public class ObjectCollision {
 					
 					object.y += object.movementAmount;
 					
-				}
-				
-				if (isObjectCollidingBottom(object.y + object.height, map.height)) {
+				} else if (isObjectCollidingBottom((object.y + object.height), this.room.map.height)) {
 					
 					object.y -= object.movementAmount;
 					
@@ -42,45 +46,37 @@ public class ObjectCollision {
 		
 	}
 	
-	public static void checkForObjectCollision() {
+	public void checkForObjectCollision() {
 		
-		// This is Very Poor and Doesn't Work Properly Just Yet
-		
-		for (Object object : Game.currentObjectsOnScreen) {
+		for (Object object : this.room.currentObjectList) {
 			
 			if (object.isCollidable) {
 				
-//			Object object = Game.playerObject;
-			
-				for (Object otherObject : Game.currentObjectsOnScreen) {
+				for (Object otherObject : this.room.currentObjectList) {
 					
 					if (otherObject.isCollidable) {
 						
 						if (object != otherObject) {
 							
-							// Change to Or Not Else If
-							
 							if (isObjectCollidingLeft(object, otherObject)) {
 								
-								object.x = object.positionCache[0];
+								object.x += object.movementAmount;
 								
 							} else if (isObjectCollidingRight(object, otherObject)) {
 								
-								object.x = object.positionCache[0];
+								object.x -= object.movementAmount;
 								
 							}
 							
 							if (isObjectCollidingTop(object, otherObject)) {
 								
-								object.y = object.positionCache[1];
+								object.y += object.movementAmount;
 								
 							} else if (isObjectCollidingBottom(object, otherObject)) {
 								
-								object.y = object.positionCache[1];
+								object.y -= object.movementAmount;
 								
 							}
-							
-							object.updatePositionCache();
 							
 						}
 						
@@ -94,83 +90,65 @@ public class ObjectCollision {
 		
 	}
 	
-	// Should Simplify This
-	
-	private static boolean isObjectCollidingLeft(int x1, int x2) {
+	private boolean isObjectCollidingLeft(int x1, int x2) {
 		
 		return (x1 < x2);
 		
 	}
 	
-	private static boolean isObjectCollidingRight(int x1, int x2) {
+	private boolean isObjectCollidingRight(int x1, int x2) {
 		
 		return (x1 > x2);
 		
 	}
 	
-	private static boolean isObjectCollidingTop(int y1, int y2) {
+	private boolean isObjectCollidingTop(int y1, int y2) {
 		
-		return (y1 < y2);
+		// Same Code
 		
-	}
-	
-	private static boolean isObjectCollidingBottom(int y1, int y2) {
-		
-		return (y1 > y2);
+		return isObjectCollidingLeft(y1, y2);
 		
 	}
 	
-	// Should Simplify...
-	
-	private static boolean isObjectCollidingLeft(Object object1, Object object2) {
+	private boolean isObjectCollidingBottom(int y1, int y2) {
 		
-		if (((object1.x >= object2.x) && (object1.x <= (object2.x + object2.width))) &&
-			(((object1.y + object1.height) >= object2.y) && (object1.y <= (object2.y + object2.height)))) {
-			
-			return true;
-			
-		}
+		// Same Code
 		
-		return false;
+		return isObjectCollidingRight(y1, y2);
 		
 	}
 	
-	private static boolean isObjectCollidingRight(Object object1, Object object2) {
+	private boolean isObjectCollidingLeft(Object object1, Object object2) {
 		
-		if ((((object1.x <= object2.x) && (object1.x + object1.width) >= object2.x)) &&
-			(((object1.y + object1.height) >= object2.y) && (object1.y <= (object2.y + object2.height)))) {
-			
-			return true;
-			
-		}
-		
-		return false;
+		return ((((object1.x >= object2.x) && (object1.x <= (object2.x + object2.width))) &&
+				(((object1.y + object1.height) >= object2.y) && (object1.y <= (object2.y + object2.height)))) &&
+				
+				((((object2.x + object2.width) - object1.x) < ((object2.y + object2.height) - object1.y)) &&
+				(((object2.x + object2.width) - object1.x) < ((object1.y + object1.height) - object2.y))));
 		
 	}
 	
-	private static boolean isObjectCollidingTop(Object object1, Object object2) {
+	private boolean isObjectCollidingRight(Object object1, Object object2) {
 		
-		if ((((object1.y) >= object2.y) && (object1.y <= (object2.y + object2.height))) &&
-			(((object1.x + object1.width) >= object2.x) && (object1.x <= (object2.x + object2.width)))) {
-			
-			return true;
-			
-		}
-		
-		return false;
+		return (((((object1.x <= object2.x) && (object1.x + object1.width) >= object2.x)) &&
+				(((object1.y + object1.height) >= object2.y) && (object1.y <= (object2.y + object2.height)))) &&
+				
+				((((object1.x + object1.width) - object2.x) < ((object1.y + object1.height) - object2.y)) &&
+				(((object1.x + object1.width) - object2.x) < ((object2.y + object2.height) - object1.y))));
 		
 	}
 	
-	private static boolean isObjectCollidingBottom(Object object1, Object object2) {
+	private boolean isObjectCollidingTop(Object object1, Object object2) {
 		
-		if (((object1.y <= object2.y) && ((object1.y + object1.height) >= object2.y)) &&
-			(((object1.x + object1.width) >= object2.x)  && (object1.x <= (object2.x + object2.width)))) {
-			
-			return true;
-			
-		}
+		return ((((object1.y >= object2.y)) && ((object2.y + object2.height) > object1.y)) &&
+				(((object1.x + object1.width) >= object2.x) && (object1.x <= (object2.x + object2.width))));
 		
-		return false;
+	}
+	
+	private boolean isObjectCollidingBottom(Object object1, Object object2) {
+		
+		return (((object1.y <= object2.y) && ((object1.y + object1.height) >= object2.y)) &&
+				(((object1.x + object1.width) >= object2.x) && (object1.x <= (object2.x + object2.width))));
 		
 	}
 	

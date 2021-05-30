@@ -8,17 +8,20 @@ import objects.Object;
 
 public class Camera {
 	
-	private Object    object;
-	private Component rootComponent;
-	private Map       map;
+	final public static double ZOOM_MINIMUM = 1;
+	final public static double ZOOM_MAXIMUM = 4.0;
 	
-	private int startX;
-	private int startY;
+	public Object    object;
+	public Component rootComponent;
+	public Map       map;
+	
+	public int startX;
+	public int startY;
 	
 	public int offsetX;
 	public int offsetY;
 	
-	boolean isCameraMovementThreadEnabled = false;
+	private boolean isCameraMovementThreadEnabled = false;
 	
 	public Camera(Object object, Component rootComponent, Map map) {
 		
@@ -26,8 +29,8 @@ public class Camera {
 		this.rootComponent = rootComponent;
 		this.map           = map;
 		
-		this.startX = this.object.x;
-		this.startY = this.object.y;
+		this.startX = object.x;
+		this.startY = object.y;
 		
 		setCameraMovementThread();
 		startCameraMovementThread();
@@ -38,41 +41,44 @@ public class Camera {
 		
 		Thread cameraMovementThread = new Thread(() -> {
 			
+			int thisObjectWidthHalf  = (this.object.width  / 2);
+			int thisObjectHeightHalf = (this.object.height / 2);
+			
+			int thisRootComponentWidth  = this.rootComponent.getWidth();
+			int thisRootComponentHeight = this.rootComponent.getHeight();
+			
+			int thisRootComponentWidthHalf  = (thisRootComponentWidth  / 2);
+			int thisRootComponentHeightHalf = (thisRootComponentHeight / 2);
+			
 			while (this.isCameraMovementThreadEnabled) {
 				
-				// For Some Reason this Boolean had Issues
-				// Should Really Fix it in the Future
-				// To Prevent Excessive CPU Usage
-				
-//				if (this.object.isCurrentlyMoving) {
+//				while (this.object.isCurrentlyMoving) {
 					
-					// Lots of this Should be Reduced With Variables
-					
-					if ((this.object.x + (this.object.width / 2)) <= (this.rootComponent.getWidth() / 2)) {
+					if ((this.object.x + thisObjectWidthHalf) <= thisRootComponentWidthHalf) {
 						
 						this.offsetX = 0;
 						
-					} else if ((this.object.x + (this.object.width / 2)) >= (this.map.width - (this.rootComponent.getWidth() / 2))) {
+					} else if ((this.object.x + thisObjectWidthHalf) >= (this.map.width - thisRootComponentWidthHalf)) {
 						
-						this.offsetX = (this.map.width - this.rootComponent.getWidth());
+						this.offsetX = (this.map.width - thisRootComponentWidth);
 						
 					} else {
 						
-						this.offsetX = (((this.object.x - startX) - ((this.rootComponent.getWidth() / 2) - this.startX)) + (this.object.width / 2));
+						this.offsetX = (((this.object.x - this.startX) - (thisRootComponentWidthHalf - this.startX)) + thisObjectWidthHalf);
 						
 					}
 					
-					if ((this.object.y + (this.object.height / 2)) <= (this.rootComponent.getHeight() / 2)) {
+					if ((this.object.y + thisObjectHeightHalf) <= thisRootComponentHeightHalf) {
 						
 						this.offsetY = 0;
 						
-					} else if ((this.object.y + (this.object.height / 2)) >= (this.map.height - (this.rootComponent.getHeight() / 2))) {
+					} else if ((this.object.y + thisObjectHeightHalf) >= (this.map.height - thisRootComponentHeightHalf)) {
 						
-						this.offsetY = (this.map.height - this.rootComponent.getHeight());
+						this.offsetY = (this.map.height - thisRootComponentHeight);
 						
 					} else {
 						
-						this.offsetY = (((this.object.y - startY) - ((this.rootComponent.getHeight() / 2) - this.startY)) + (this.object.height / 2));
+						this.offsetY = (((this.object.y - this.startY) - (thisRootComponentHeightHalf - this.startY)) + thisObjectHeightHalf);
 						
 					}
 					
@@ -81,7 +87,9 @@ public class Camera {
 						// Generally Really Bad Because it Causes lots of Computational Work
 						// Need to Fix the While Loops Boolean to Prevent there Being Huge Amounts of Work
 						
-						Thread.sleep(1);
+//						Thread.sleep(1);
+						
+						Thread.sleep((long) 0.999);
 						
 					} catch (InterruptedException e) {
 						
@@ -89,9 +97,9 @@ public class Camera {
 						
 					}
 					
-//				}
+				}
 				
-			}
+//			}
 			
 		});
 		

@@ -1,14 +1,13 @@
 package main;
 
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.MediaTracker;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-
-import java.io.File;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,50 +16,62 @@ import javax.swing.JFrame;
 
 import camera.Camera;
 
-import input.KeyboardInputHandler;
-import input.MouseInputHandler;
+import gui.HealthBarOverlay;
+import gui.Overlay;
+
+import input.KeyboardInput;
+import input.MouseInput;
 
 import map.Map;
+import map.Room;
 
 import objects.NPCObject;
 import objects.Object;
 import objects.PlayerObject;
 import objects.TileObject;
+import objects.WeatherObject;
 
 import physics.ObjectCollision;
 
-import sprites.gui.CursorSprites;
+import sprites.Sprite;
 import sprites.objects.player.PlayerSprites;
 
-@SuppressWarnings("serial")
-public class Game extends JFrame {
+public class Game {
 	
 	public static boolean isRunning = false;
 	
-	public static int mainWindowWidth  = 750;
-	public static int mainWindowHeight = 650;
+	public int mainWindowWidth  = 750;
+	public int mainWindowHeight = 650;
 	
-	public Insets mainWindowInsets;
+	public JFrame mainWindowFrame = new JFrame();
 	
-	public BufferedImage backBuffer = new BufferedImage(mainWindowWidth, mainWindowHeight, BufferedImage.TYPE_INT_RGB);
+	private Insets mainWindowInsets;
 	
-	public Map gameMap;
+	private BufferedImage backBuffer;
 	
-	public static Camera camera;
+	private Graphics2D backBufferGraphics;
 	
-	public static List<Object> currentObjectsOnScreen = new ArrayList<Object>();
+	private Room currentRoom;
+	
+	private Camera camera;
+	
+	private ObjectCollision objectCollision;
+	
+	public List<Overlay> currentOverlays = new ArrayList<Overlay>();
+	
+	public List<WeatherObject> currentWeatherObjectsRendered = new ArrayList<WeatherObject>();
 	
 	public PlayerObject playerObject;
 	
-	// run() and draw() Were Made by TerranceN for the Most Part
+	// This Method was Made by TerranceN
 	
-	public void run() {
+	void run() {
 		
 		initialize();
 		
 		while (isRunning) {
 			
-			long time = System.currentTimeMillis();
+			long timeCache = System.currentTimeMillis();
 			
 			update();
 			
@@ -69,7 +80,7 @@ public class Game extends JFrame {
 			// 60 = FPS Lock
 			
 //			long frameTime = (1000 / 60) - (System.currentTimeMillis() - time);
-			long frameTime = (long) (16.666667 - (System.currentTimeMillis() - time));
+			long frameTime = (long) (16.6666666667 - (System.currentTimeMillis() - timeCache));
 			
 			if (frameTime > 0) {
 				
@@ -91,56 +102,83 @@ public class Game extends JFrame {
 		
 	}
 	
-	void initialize() {
+	private void initialize() {
 		
-		createMainWindow();
+		setMainWindow();
 		
-		backBuffer = new BufferedImage(mainWindowWidth, mainWindowHeight, BufferedImage.TYPE_INT_RGB);
+		this.backBuffer = new BufferedImage(this.mainWindowWidth, this.mainWindowHeight, BufferedImage.TYPE_INT_RGB);
 		
-		KeyboardInputHandler keyboardInput = new KeyboardInputHandler(this);
-		MouseInputHandler    mouseInput    = new MouseInputHandler(this);
+		this.backBufferGraphics = this.backBuffer.createGraphics();
 		
-		gameMap = new Map(new File(this.getClass().getResource("/map/maps/0.map").getFile()));
+		KeyboardInput keyboardInput = new KeyboardInput(this.mainWindowFrame);
+		MouseInput    mouseInput    = new MouseInput(this.mainWindowFrame);
 		
-		setCurrentMap(gameMap);
+		this.currentRoom = new Room(new Map(this.getClass().getResourceAsStream("/map/presets/world" + Globals.MAP)));
 		
-		playerObject = new PlayerObject("Prismo", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 450, 250, keyboardInput, mouseInput);
+		setCurrentMap(this.currentRoom.map);
 		
-		camera = new Camera(playerObject, this, gameMap);
+		playerObject = new PlayerObject("Prismo", 100, PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 450, 450, keyboardInput, mouseInput);
 		
-		NPCObject test1 = new NPCObject("Test2", PlayerSprites.getAnimationCycle(), Object.SIZE_16_16, 100, 300);
+		this.currentRoom.currentObjectList.add(playerObject);
 		
-		this.setVisible(true);
+		objectCollision = new ObjectCollision(this.currentRoom);
 		
-//		playerObject.move(365, 450);
-		test1.move(400, 50);
+		HealthBarOverlay healthBarOverlay = new HealthBarOverlay(playerObject);
+		
+		this.currentOverlays.add(healthBarOverlay);
+		
+		this.camera = new Camera(playerObject, this.mainWindowFrame, this.currentRoom.map);
+		
+		NPCObject npc1 = new NPCObject("Test1", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 100, 300);
+		NPCObject npc2 = new NPCObject("Test2", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 150, 300);
+		NPCObject npc3 = new NPCObject("Test3", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 250, 320);
+		NPCObject npc4 = new NPCObject("Test4", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 400, 500);
+		NPCObject npc5 = new NPCObject("Test5", PlayerSprites.getAnimationCycle(), Object.SIZE_16_24, 250, 900);
+		
+		this.currentRoom.currentObjectList.add(npc1);
+		this.currentRoom.currentObjectList.add(npc2);
+		this.currentRoom.currentObjectList.add(npc3);
+		this.currentRoom.currentObjectList.add(npc4);
+		this.currentRoom.currentObjectList.add(npc5);
+		
+		this.mainWindowFrame.setVisible(true);
 		
 		isRunning = true;
 		
+		playerObject.subtractHealth(50);
+		
+		npc1.walk(npc1.x + 150, npc1.y + 100);
+		npc2.walk(npc2.x + 120, npc2.y + 520);
+		npc3.walk(npc3.x + 450, npc3.y + 150);
+		npc4.walk(npc4.x + 550, npc4.y + 400);
+		npc5.walk(npc5.x + 650, npc5.y + 220);
+		
 	}
 	
-	void createMainWindow() {
+	private void setMainWindow() {
 		
-		this.setTitle("Prismo's Quest");
-		this.setResizable(false);
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		this.setUndecorated(true);
+		this.mainWindowFrame.setTitle("Prismo's Quest");
+		this.mainWindowFrame.setResizable(false);
+		this.mainWindowFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.mainWindowFrame.setUndecorated(true);
+		this.mainWindowFrame.setAlwaysOnTop(true);
 		
-		this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(CursorSprites.cursorSprite, new Point(0, 0), null));
+		this.mainWindowFrame.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(Sprite.createSprite(Globals.GUI_SPRITES, "cursor", Globals.PNG), new Point(0, 0), null));
 		
-		this.setSize(mainWindowWidth, mainWindowHeight);
+		this.mainWindowFrame.setSize(this.mainWindowWidth, this.mainWindowHeight);
 		
-		this.mainWindowInsets = getInsets();
+		this.mainWindowInsets = mainWindowFrame.getInsets();
 		
-		this.setSize(this.mainWindowInsets.left + this.getWidth()  + this.mainWindowInsets.right,
-					 this.mainWindowInsets.top  + this.getHeight() + this.mainWindowInsets.bottom);
+		this.mainWindowFrame.setSize(this.mainWindowInsets.left + this.mainWindowFrame.getWidth()  + this.mainWindowInsets.right,
+									 this.mainWindowInsets.top  + this.mainWindowFrame.getHeight() + this.mainWindowInsets.bottom);
 		
-//		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		this.mainWindowFrame.setLocationRelativeTo(null); // Set Location After Size
 		
-		this.setLocationRelativeTo(null); // Set Location After Size
+//		this.mainWindowFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		
-		this.addWindowListener(new WindowAdapter() {
+		this.mainWindowFrame.addWindowListener(new WindowAdapter() {
 			
+			@Override
 			public void windowClosing(WindowEvent e) {
 				
 				exit();
@@ -151,31 +189,43 @@ public class Game extends JFrame {
 		
 	}
 	
-	void update() {
+	private void update() {
 		
 		playerObject.checkForKeyboardInput();
-		playerObject.checkForMouseInput();
+//		playerObject.checkForMouseInput();
 		
-		ObjectCollision.checkForWorldCollision(gameMap);
-		ObjectCollision.checkForObjectCollision();
+		this.objectCollision.checkForWorldCollision();
+		this.objectCollision.checkForObjectCollision();
 		
 	}
 	
-	void draw() {
+	private void draw() {
 		
-		Graphics backBufferGraphics = backBuffer.getGraphics();
+		int mainWindowFrameWidth  = this.mainWindowFrame.getWidth();
+		int mainWindowFrameHeight = this.mainWindowFrame.getHeight();
 		
-		for (Object object : currentObjectsOnScreen) {
+		for (Object object : this.currentRoom.currentObjectList) {
 			
-			object.draw(backBufferGraphics, this, this.mainWindowInsets, camera.offsetX, camera.offsetY);
+			if ((object.x > (this.camera.offsetX - mainWindowFrameWidth))  && (object.x < (this.camera.offsetX + mainWindowFrameWidth)) &&
+				(object.y > (this.camera.offsetY - mainWindowFrameHeight)) && (object.y < (this.camera.offsetY + mainWindowFrameHeight))) {
+				
+				object.draw(this.backBufferGraphics, this.mainWindowFrame, this.mainWindowInsets, this.camera.offsetX, this.camera.offsetY);
+				
+			}
 			
 		}
 		
-		this.getGraphics().drawImage(this.backBuffer, this.mainWindowInsets.left, this.mainWindowInsets.top, this);
+		for (Overlay overlay : this.currentOverlays) {
+			
+			overlay.draw(this.backBufferGraphics, this.mainWindowFrame);
+			
+		}
+		
+		this.mainWindowFrame.getGraphics().drawImage(this.backBuffer, this.mainWindowInsets.left, this.mainWindowInsets.top, this.mainWindowFrame);
 		
 	}
 	
-	void exit() {
+	private void exit() {
 		
 		// This Method is for Configuration, Auto Saving, etc.
 		
@@ -183,19 +233,39 @@ public class Game extends JFrame {
 		
 	}
 	
-	void setCurrentMap(Map map) {
+	private void setCurrentMap(Map map) {
 		
-		for (Object object : currentObjectsOnScreen) {
+		for (Object object : new ArrayList<Object>(this.currentRoom.currentObjectList)) {
 			
 			if (object instanceof TileObject) {
 				
-				currentObjectsOnScreen.remove(object);
+				this.currentRoom.currentObjectList.remove(object);
 				
 			}
 			
 		}
 		
-		currentObjectsOnScreen.addAll(map.getTileObjects());
+		List<TileObject> tileObjects = map.getTileObjects();
+		
+		MediaTracker mediaTracker = new MediaTracker(mainWindowFrame);
+		
+		for (int i = 0; i < tileObjects.size(); i++) {
+			
+			mediaTracker.addImage(tileObjects.get(i).sprite, i);
+			
+		}
+		
+		try {
+			
+			mediaTracker.waitForAll();
+			
+		} catch (InterruptedException e) {
+			
+			e.printStackTrace();
+			
+		}
+		
+		this.currentRoom.currentObjectList.addAll(tileObjects);
 		
 	}
 	

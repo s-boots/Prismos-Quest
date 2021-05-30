@@ -1,18 +1,16 @@
 package objects;
 
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.image.ImageObserver;
 
 import graphics.AnimationCycle;
 
-import main.Game;
-
-public class Object {
+public abstract class Object {
 	
 //	final public static int[] SIZE_8_8   = {8,  8};
-	final public static int[] SIZE_16_16 = {16, 16};
+//	final public static int[] SIZE_16_16 = {16, 16};
 	final public static int[] SIZE_16_24 = {16, 24};
 	final public static int[] SIZE_32_32 = {32, 32};
 //	final public static int[] SIZE_64_64 = {64, 64};
@@ -36,10 +34,7 @@ public class Object {
 	
 	public boolean isCurrentlyMoving = false;
 	
-	public int[] positionCache = new int[2];
-	
 	public boolean isAnimationThreadEnabled = false;
-	public boolean isMovementThreadEnabled  = false;
 	
 	private void abstractInititalize(int[] size, int x, int y) {
 		
@@ -48,19 +43,6 @@ public class Object {
 		
 		this.x = x;
 		this.y = y;
-		
-		this.positionCache[0] = x;
-		this.positionCache[1] = y;
-		
-		// In Future, Only Render Objects that Need To be Rendered...
-		
-		Game.currentObjectsOnScreen.add(this);
-		
-	}
-	
-	public Object(int[] size, int x, int y) {
-		
-		abstractInititalize(size, x, y);
 		
 	}
 	
@@ -75,126 +57,12 @@ public class Object {
 	public Object(AnimationCycle animationCycle, int[] size, int x, int y) {
 		
 		this.animationCycle = animationCycle;
-		this.sprite         = this.animationCycle.getSprite(this.animationCycle.neutralSpriteIndexs[1]);
+		this.sprite         = animationCycle.getSprite(0);
 		
 		abstractInititalize(size, x, y);
 		
 		setAnimationThread();
 		startAnimationThread();
-		
-	}
-	
-	public void move(int x, int y) {
-		
-		// Lots of This Can Probably be Simplified
-		
-		if (!this.isMovementThreadEnabled) {
-			
-			Thread movementThread = new Thread(() -> {
-				
-				this.isMovementThreadEnabled = true;
-				
-				int objectMovementSleepAmount = this.movementAmount * 10;
-				
-				if (this.x < x) {
-					
-					this.isCurrentlyMoving = true;
-					
-					for (int i = 0; i < ((x - this.x) / this.movementAmount); i++) {
-						
-						this.x += this.movementAmount;
-						
-						try {
-							
-							Thread.sleep(objectMovementSleepAmount);
-							
-						} catch (InterruptedException e) {
-							
-							e.printStackTrace();
-							
-						}
-						
-					}
-					
-					this.isCurrentlyMoving = false;
-					
-				} else {
-					
-					this.isCurrentlyMoving = true;
-					
-					for (int i = ((this.x - x) / this.movementAmount); i > 0; i--) {
-						
-						this.x -= this.movementAmount;
-						
-						try {
-							
-							Thread.sleep(objectMovementSleepAmount);
-							
-						} catch (InterruptedException e) {
-							
-							e.printStackTrace();
-							
-						}
-						
-					}
-					
-					this.isCurrentlyMoving = false;
-					
-				}
-				
-				if (this.y < y) {
-					
-					this.isCurrentlyMoving = true;
-					
-					for (int i = 0; i < ((y - this.y) / this.movementAmount); i++) {
-						
-						this.y += this.movementAmount;
-						
-						try {
-							
-							Thread.sleep(objectMovementSleepAmount);
-							
-						} catch (InterruptedException e) {
-							
-							e.printStackTrace();
-							
-						}
-						
-					}
-					
-					this.isCurrentlyMoving = false;
-					
-				} else {
-					
-					this.isCurrentlyMoving = true;
-					
-					for (int i = ((this.y - y) / this.movementAmount); i > 0; i--) {
-						
-						this.y -= this.movementAmount;
-						
-						try {
-							
-							Thread.sleep(objectMovementSleepAmount);
-							
-						} catch (InterruptedException e) {
-							
-							e.printStackTrace();
-							
-						}
-						
-					}
-					
-					this.isCurrentlyMoving = false;
-					
-				}
-				
-				this.isMovementThreadEnabled = false;
-				
-			});
-			
-			movementThread.start();
-			
-		}
 		
 	}
 	
@@ -207,7 +75,7 @@ public class Object {
 			
 			while (this.isAnimationThreadEnabled) {
 				
-				if (!isAnimationAutomatic) {
+				if (!this.isAnimationAutomatic) {
 					
 					if (cacheX < this.x) {
 						
@@ -240,7 +108,7 @@ public class Object {
 				
 				try {
 					
-					Thread.sleep(this.animationCycle.animationDelay);
+					Thread.sleep(this.animationCycle.delay);
 					
 				} catch (InterruptedException e) {
 					
@@ -262,19 +130,6 @@ public class Object {
 		
 	}
 	
-	public void stopAnimationThread() {
-		
-		this.isAnimationThreadEnabled = false;
-		
-	}
-	
-	public void updatePositionCache() {
-		
-		this.positionCache[0] = this.x;
-		this.positionCache[1] = this.y;
-		
-	}
-	
 	protected void animate(int directionIndex) {
 		
 		int animationCacheDirection = this.animationCache[directionIndex];
@@ -283,15 +138,15 @@ public class Object {
 		
 		this.sprite = this.animationCycle.getSprite((directionIndex == 0 ? animationCacheDirection : ((directionIndex * spriteArrayLengthDividedBy4) + animationCacheDirection)));
 		
-		this.animationCache[directionIndex] = ((animationCacheDirection == spriteArrayLengthDividedBy4 - 1) ? 0 : animationCacheDirection + 1);
+		this.animationCache[directionIndex] = ((animationCacheDirection == (spriteArrayLengthDividedBy4 - 1)) ? 0 : (animationCacheDirection + 1));
 		
 	}
 	
-	public void draw(Graphics rootGraphics, ImageObserver imageObserver, Insets insets, int offsetX, int offsetY) {
+	public void draw(Graphics2D rootGraphics, ImageObserver imageObserver, Insets insets, int offsetX, int offsetY) {
 		
 		if (this.sprite != null) {
 			
-			rootGraphics.drawImage(this.sprite, insets.left + (this.x - offsetX), insets.top + (this.y - offsetY), imageObserver);
+			rootGraphics.drawImage(this.sprite, (int) ((insets.left + (this.x - offsetX) / rootGraphics.getTransform().getScaleX())), (int) ((insets.top + (this.y - offsetY)) / rootGraphics.getTransform().getScaleY()), imageObserver);
 			
 		}
 		

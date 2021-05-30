@@ -1,22 +1,23 @@
 package graphics;
 
 import java.awt.Image;
+import java.awt.MediaTracker;
+
+//import main.Game;
 
 public class AnimationCycle {
 	
 	public Image[] spriteArray;
 	
-	public int animationDelay;
+	public int delay;
 	
-	public int[] neutralSpriteIndexs;
+	public MediaTracker mediaTracker;
 	
-	public AnimationCycle(Image[] spriteArray, int animationDelay, int[] neutralSpriteIndexs) {
+	public AnimationCycle(Image[] spriteArray, int delay) {
 		
 		this.spriteArray = spriteArray;
 		
-		this.animationDelay = animationDelay;
-		
-		this.neutralSpriteIndexs = neutralSpriteIndexs;
+		this.delay = delay;
 		
 	}
 	

@@ -1,118 +1,118 @@
 package objects;
 
-import java.awt.Image;
 import java.awt.event.KeyEvent;
 
 import graphics.AnimationCycle;
 
-import input.KeyboardInputHandler;
-import input.MouseInputHandler;
+import gui.HealthBarOverlay;
+
+import input.KeyboardInput;
+import input.MouseInput;
 
 import main.Game;
+
+import utilities.KeyboardInputUtilities;
 
 public class PlayerObject extends Object {
 	
 	public String name;
+	public int    health;
 	
-	public KeyboardInputHandler keyboardInput;
-	public MouseInputHandler    mouseInput;
+	public KeyboardInput keyboardInput;
+	public MouseInput    mouseInput;
+	
+	public HealthBarOverlay healthBarOverlay;
 	
 	public boolean isKeyboardInputMovementEnabled = true;
+	public boolean isKeyboardInputThreadRunning   = false;
 	
-//	public boolean isKeyboardInputThreadRunning = false;
-	
-//	private void abstractInititalize() {
-//		
-//		setKeyboardInputThread();
-//		startKeyboardInputThread();
-//		
-//	}
-	
-	public PlayerObject(String name, Image sprite, int[] size, int x, int y, KeyboardInputHandler keyboardInput, MouseInputHandler mouseInput) {
-		
-		super(sprite, size, x, y);
-		
-		this.name = name;
-		
-		this.keyboardInput = keyboardInput;
-		this.mouseInput    = mouseInput;
-		
-//		abstractInititalize();
-		
-	}
-	
-	public PlayerObject(String name, AnimationCycle animationCycle, int[] size, int x, int y, KeyboardInputHandler keyboardInput, MouseInputHandler mouseInput) {
+	public PlayerObject(String name, int health, AnimationCycle animationCycle, int[] size, int x, int y, KeyboardInput keyboardInput, MouseInput mouseInput) {
 		
 		super(animationCycle, size, x, y);
 		
-		this.name = name;
+		this.name   = name;
+		this.health = health;
 		
 		this.keyboardInput = keyboardInput;
 		this.mouseInput    = mouseInput;
 		
-//		abstractInititalize();
+	}
+	
+	public void addHealth(int amount) {
+		
+		this.health += amount;
+		
+		healthBarOverlay.addAmount(amount);
 		
 	}
 	
-//	public void setKeyboardInputThread() {
-//		
-//		Thread keybaordInputMovementThread = new Thread(() -> {
-//			
-//			while (true) {
-//				
-//				if (Game.keyboardInput.isKeyDown(KeyEvent.VK_ESCAPE)) {
-//					
-//					Game.isRunning = false;
-//					
+	public void subtractHealth(int amount) {
+		
+		this.health -= amount;
+		
+		healthBarOverlay.subtractAmount(amount);
+		
+	}
+	
+	public void setKeyboardInputThread() {
+		
+		Thread keybaordInputMovementThread = new Thread(() -> {
+			
+			while (this.isKeyboardInputThreadRunning) {
+				
+				if (this.keyboardInput.isKeyDown(KeyEvent.VK_ESCAPE)) {
+					
+					Game.isRunning = false;
+					
+				}
+				
+//				if (this.isKeyboardInputMovementEnabled) {
+					
+					if (KeyboardInputUtilities.isUpPressed(this.keyboardInput)) {
+						
+						this.y -= this.movementAmount;
+						
+					}
+					
+					if (KeyboardInputUtilities.isDownPressed(this.keyboardInput)) {
+						
+						this.y += this.movementAmount;
+						
+					}
+					
+					if (KeyboardInputUtilities.isLeftPressed(this.keyboardInput)) {
+						
+						this.x -= this.movementAmount;
+						
+					}
+					
+					if (KeyboardInputUtilities.isRightPressed(this.keyboardInput)) {
+						
+						this.x += this.movementAmount;
+						
+					}
+					
 //				}
-//				
-////				if (this.isKeyboardInputMovementEnabled) {
-//					
-//					if (Game.keyboardInput.isKeyDown(KeyEvent.VK_UP) || Game.keyboardInput.isKeyDown(KeyEvent.VK_W)) {
-//						
-//						this.y -= object.movementAmount;
-//						
-//					}
-//					
-//					if (Game.keyboardInput.isKeyDown(KeyEvent.VK_DOWN) || Game.keyboardInput.isKeyDown(KeyEvent.VK_S)) {
-//						
-//						this.y += object.movementAmount;
-//						
-//					}
-//					
-//					if (Game.keyboardInput.isKeyDown(KeyEvent.VK_LEFT) || Game.keyboardInput.isKeyDown(KeyEvent.VK_A)) {
-//						
-//						this.x -= object.movementAmount;
-//						
-//					}
-//					
-//					if (Game.keyboardInput.isKeyDown(KeyEvent.VK_RIGHT) || Game.keyboardInput.isKeyDown(KeyEvent.VK_D)) {
-//						
-//						this.x += object.movementAmount;
-//						
-//					}
-//					
-////				}
-//				
-//			}
-//			
-//		});
-//		
-//		keybaordInputMovementThread.start();
-//		
-//	}
-//	
-//	public void startKeyboardInputThread() {
-//		
-//		this.isKeyboardInputThreadRunning = true;
-//		
-//	}
-//	
-//	public void stopKeyboardInputThread() {
-//		
-//		this.isKeyboardInputThreadRunning = false;
-//		
-//	}
+				
+			}
+			
+		});
+		
+		keybaordInputMovementThread.start();
+		
+	}
+	
+	public void startKeyboardInputThread() {
+		
+		this.isKeyboardInputThreadRunning = true;
+		
+	}
+	
+	public void stopKeyboardInputThread() {
+		
+		this.isKeyboardInputThreadRunning = false;
+		
+	}
 	
 	public void checkForKeyboardInput() {
 		
@@ -124,41 +124,36 @@ public class PlayerObject extends Object {
 		
 		if (this.isKeyboardInputMovementEnabled) {
 			
-//			this.isCurrentlyMoving = true;
+			boolean isUpPressed    = KeyboardInputUtilities.isUpPressed(this.keyboardInput);
+			boolean isDownPressed  = KeyboardInputUtilities.isDownPressed(this.keyboardInput);
+			boolean isLeftPressed  = KeyboardInputUtilities.isLeftPressed(this.keyboardInput);
+			boolean isRightPressed = KeyboardInputUtilities.isRightPressed(this.keyboardInput);
 			
-			if (this.keyboardInput.isKeyDown(KeyEvent.VK_UP) || this.keyboardInput.isKeyDown(KeyEvent.VK_W)) {
-				
-				this.isCurrentlyMoving = true;
+//			this.isCurrentlyMoving = (isUpPressed || isDownPressed || isLeftPressed || isRightPressed);
+			
+			if (isUpPressed) {
 				
 				this.y -= this.movementAmount;
 				
 			}
 			
-			if (this.keyboardInput.isKeyDown(KeyEvent.VK_DOWN) || this.keyboardInput.isKeyDown(KeyEvent.VK_S)) {
-				
-				this.isCurrentlyMoving = true;
+			if (isDownPressed) {
 				
 				this.y += this.movementAmount;
 				
 			}
 			
-			if (this.keyboardInput.isKeyDown(KeyEvent.VK_LEFT) || this.keyboardInput.isKeyDown(KeyEvent.VK_A)) {
-				
-				this.isCurrentlyMoving = true;
+			if (isLeftPressed) {
 				
 				this.x -= this.movementAmount;
 				
 			}
 			
-			if (this.keyboardInput.isKeyDown(KeyEvent.VK_RIGHT) || this.keyboardInput.isKeyDown(KeyEvent.VK_D)) {
-				
-				this.isCurrentlyMoving = true;
+			if (isRightPressed) {
 				
 				this.x += this.movementAmount;
 				
 			}
-			
-//			this.isCurrentlyMoving = false;
 			
 		}
 		
@@ -168,16 +163,7 @@ public class PlayerObject extends Object {
 		
 		if (this.mouseInput.isLeftButtonClicked()) {
 			
-//			boolean xGreaterThan = false;
-//			boolean yGreaterThan = false;
-//			
-//			xGreaterThan = (this.mouseInput.clickedPoint.x > (this.x - Game.camera.offsetX));
-//			yGreaterThan = (this.mouseInput.clickedPoint.y > (this.y - Game.camera.offsetY));
-//			
-//			// Doesn't Work Properly, Will Need to Fix
-//			
-//			move((xGreaterThan ? (this.mouseInput.clickedPoint.x + this.x) : (this.x - this.mouseInput.clickedPoint.x)),
-//				 (yGreaterThan ? (this.mouseInput.clickedPoint.y + this.y) : (this.y - this.mouseInput.clickedPoint.y)));
+			//
 			
 		}
 		
@@ -188,52 +174,73 @@ public class PlayerObject extends Object {
 		
 		Thread animationThread = new Thread(() -> {
 			
-			int cacheX = this.x;
-			int cacheY = this.y;
+			int cachedDirection = 3;
 			
 			while (this.isAnimationThreadEnabled) {
 				
-				if (!isAnimationAutomatic) {
+//				while (this.isCurrentlyMoving) {
 					
-					if ((cacheX < this.x) || this.keyboardInput.isKeyDown(KeyEvent.VK_RIGHT)) {
+					if (KeyboardInputUtilities.isLeftPressed(this.keyboardInput)) {
 						
-						animate(3);
+						if (!KeyboardInputUtilities.isRightPressed(this.keyboardInput)) {
+							
+							animate(2);
+							
+							cachedDirection = 2;
+							
+						}
 						
-					} else if ((cacheX > this.x) || this.keyboardInput.isKeyDown(KeyEvent.VK_LEFT)) {
+					} else if (KeyboardInputUtilities.isRightPressed(this.keyboardInput)) {
 						
-						animate(2);
+						if (!KeyboardInputUtilities.isLeftPressed(this.keyboardInput)) {
+							
+							animate(3);
+							
+							cachedDirection = 3;
+							
+						}
 						
-						// There is No Need for an Else If Statement
-						// It Justs Makes the Animation Look Better
+						// This Else-If Preservers Facing Left/Right When Moving Diagonally
 						
-					} else if ((cacheY < this.y) || this.keyboardInput.isKeyDown(KeyEvent.VK_DOWN)) {
+					} else if (KeyboardInputUtilities.isUpPressed(this.keyboardInput)) {
 						
-						animate(1);
+						if (!KeyboardInputUtilities.isDownPressed(this.keyboardInput)) {
+							
+							animate(0);
+							
+							cachedDirection = 0;
+							
+						}
 						
-					} else if ((cacheY > this.y) || this.keyboardInput.isKeyDown(KeyEvent.VK_UP)) {
+					} else if (KeyboardInputUtilities.isDownPressed(this.keyboardInput)) {
 						
-						animate(0);
+						if (!KeyboardInputUtilities.isUpPressed(this.keyboardInput)) {
+							
+							animate(1);
+							
+							cachedDirection = 1;
+							
+						}
+						
+					} else {
+						
+						// Neutral Sprite Indexes (Up, Down, Left, Right): 0, 8, 16, 24
+						
+						this.sprite = this.animationCycle.getSprite(cachedDirection == 0 ? cachedDirection : (cachedDirection * 8));
 						
 					}
 					
-				} else {
+					try {
+						
+						Thread.sleep(this.animationCycle.delay);
+						
+					} catch (InterruptedException e) {
+						
+						e.printStackTrace();
+						
+					}
 					
-					animate(1);
-					
-				}
-				
-				cacheX = this.x;
-				cacheY = this.y;
-				
-				try {
-					
-					Thread.sleep(this.animationCycle.animationDelay);
-					
-				} catch (InterruptedException e) {
-					
-					e.printStackTrace();
-					
-				}
+//				}
 				
 			}
 			
